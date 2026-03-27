@@ -1,0 +1,36 @@
+service: lambda-orchestrator
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    CUSTOMERS_API_BASE: ${env:CUSTOMERS_API_BASE, 'http://localhost:3001'}
+    ORDERS_API_BASE: ${env:ORDERS_API_BASE, 'http://localhost:3002'}
+    SERVICE_TOKEN: ${env:SERVICE_TOKEN, 'internal-service-token-2024'}
+    JWT_SECRET: ${env:JWT_SECRET, 'supersecretkey123'}
+
+functions:
+  orchestrator:
+    handler: src/handler.handler
+    timeout: 30
+    events:
+      - http:
+          path: /orchestrator/{proxy+}
+          method: ANY
+          cors: true
+      - http:
+          path: /orchestrator
+          method: ANY
+          cors: true
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3003
+    noPrependStageInUrl: true

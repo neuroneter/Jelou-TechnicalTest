@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: jelou-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: jelou_b2b
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  customers-api:
+    build:
+      context: ./customers-api
+      dockerfile: Dockerfile
+    container_name: jelou-customers-api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_NAME: jelou_b2b
+      JWT_SECRET: supersecretkey123
+      SERVICE_TOKEN: internal-service-token-2024
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  orders-api:
+    build:
+      context: ./orders-api
+      dockerfile: Dockerfile
+    container_name: jelou-orders-api
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_NAME: jelou_b2b
+      JWT_SECRET: supersecretkey123
+      SERVICE_TOKEN: internal-service-token-2024
+      CUSTOMERS_API_BASE: http://customers-api:3001
+    depends_on:
+      mysql:
+        condition: service_healthy
+      customers-api:
+        condition: service_started
+
+volumes:
+  mysql_data:

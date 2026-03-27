@@ -1,0 +1,21 @@
+{
+  "name": "lambda-orchestrator",
+  "version": "1.0.0",
+  "description": "Lambda orchestrator for Jelou B2B Backoffice",
+  "main": "src/handler.js",
+  "scripts": {
+    "start": "npx serverless offline",
+    "dev": "npx serverless offline --httpPort 3003",
+    "deploy": "npx serverless deploy",
+    "test": "echo \"No tests configured\" && exit 0"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "serverless-http": "^3.2.0"
+  },
+  "devDependencies": {
+    "serverless": "^3.39.0",
+    "serverless-offline": "^14.4.0"
+  }
+}
