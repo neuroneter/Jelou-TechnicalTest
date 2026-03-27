@@ -11,4 +11,21 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
+async function waitForDB(retries = 10, delay = 3000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const conn = await pool.getConnection();
+      await conn.query('SELECT 1');
+      conn.release();
+      console.log('Database connection established');
+      return;
+    } catch (err) {
+      console.log(`Waiting for database... attempt ${i + 1}/${retries}`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+  throw new Error('Could not connect to database after retries');
+}
+
 module.exports = pool;
+module.exports.waitForDB = waitForDB;

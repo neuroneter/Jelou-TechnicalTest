@@ -60,12 +60,8 @@ CREATE TABLE IF NOT EXISTS idempotency_keys (
   expires_at TIMESTAMP NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Indexes for performance
-CREATE INDEX idx_customers_email ON customers(email);
+-- Indexes for performance (only on non-unique, non-FK columns that need search)
 CREATE INDEX idx_customers_deleted_at ON customers(deleted_at);
-CREATE INDEX idx_products_sku ON products(sku);
-CREATE INDEX idx_orders_customer_id ON orders(customer_id);
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_orders_created_at ON orders(created_at);
-CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 CREATE INDEX idx_idempotency_keys_expires_at ON idempotency_keys(expires_at);

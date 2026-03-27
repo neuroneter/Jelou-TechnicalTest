@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const pool = require('./config/db');
+const { waitForDB } = require('./config/db');
 const customersRouter = require('./routes/customers');
 const internalRouter = require('./routes/internal');
 const authRouter = require('./routes/auth');
@@ -13,9 +15,14 @@ app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'customers-api', timestamp: new Date().toISOString() });
+// Health check with DB validation
+app.get('/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'ok', service: 'customers-api', timestamp: new Date().toISOString() });
+  } catch (err) {
+    res.status(503).json({ status: 'error', service: 'customers-api', error: 'Database unavailable' });
+  }
 });
 
 // Routes
@@ -34,8 +41,16 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Customers API running on port ${PORT}`);
+async function start() {
+  await waitForDB();
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Customers API running on port ${PORT}`);
+  });
+}
+
+start().catch(err => {
+  console.error('Failed to start:', err);
+  process.exit(1);
 });
 
 module.exports = app;
