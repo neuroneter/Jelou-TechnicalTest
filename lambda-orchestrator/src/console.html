@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Console &mdash; Jelou B2B Backoffice</title>
+  <link rel="icon" type="image/png" href="data:image/png;base64,{{FAVICON_B64}}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Poppins', sans-serif; background: #fbfbfb; color: #1e2939; -webkit-font-smoothing: antialiased; }
+
+    /* Nav */
+    .topnav {
+      background: #fff; border-bottom: 1px solid #e8ecf1; padding: 0 2rem;
+      display: flex; align-items: center; height: 56px; position: sticky; top: 0; z-index: 50;
+    }
+    .topnav-brand { display: flex; align-items: center; gap: 0.5rem; font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 1rem; color: #1e2939; text-decoration: none; }
+    .topnav-brand svg { width: 28px; height: 28px; }
+    .topnav-links { display: flex; gap: 0; margin-left: 2rem; height: 100%; }
+    .topnav-links a {
+      display: flex; align-items: center; gap: 0.4rem; padding: 0 1rem; height: 100%;
+      font-size: 0.82rem; font-weight: 500; color: #374361; text-decoration: none;
+      border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
+    }
+    .topnav-links a:hover { color: #00b3c7; }
+    .topnav-links a.active { color: #00b3c7; border-bottom-color: #00b3c7; }
+    .topnav-links svg { width: 16px; height: 16px; }
+    .topnav-status { margin-left: auto; display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; color: #374361; }
+    .topnav-status .dot { width: 6px; height: 6px; background: #00b3c7; border-radius: 50%; }
+
+    /* Layout */
+    .main { max-width: 1100px; margin: 0 auto; padding: 1.5rem 2rem 3rem; }
+    .page-title { font-family: 'Manrope', sans-serif; font-size: 1.2rem; font-weight: 700; color: #1e2939; margin-bottom: 0.25rem; }
+    .page-desc { font-size: 0.82rem; color: #374361; margin-bottom: 1.5rem; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid #e8ecf1; margin-bottom: 1.5rem; }
+    .tab {
+      padding: 0.65rem 1.25rem; font-size: 0.8rem; font-weight: 500; color: #374361;
+      border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s; font-family: 'Poppins', sans-serif;
+    }
+    .tab:hover { color: #00b3c7; }
+    .tab.active { color: #00b3c7; border-bottom-color: #00b3c7; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Cards & Tables */
+    .card { background: #fff; border: 1px solid #e8ecf1; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+    .card-label { font-family: 'Manrope', sans-serif; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #00b3c7; margin-bottom: 0.75rem; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th { text-align: left; font-family: 'Manrope', sans-serif; font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #374361; padding: 0.6rem 0.75rem; border-bottom: 1px solid #e8ecf1; }
+    td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f7; color: #1e2939; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(0,179,199,0.02); }
+
+    .badge {
+      display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 0.15rem 0.5rem;
+      border-radius: 6px; text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    .badge-created { background: rgba(251,191,36,0.1); color: #b45309; }
+    .badge-confirmed { background: rgba(0,179,199,0.1); color: #00b3c7; }
+    .badge-canceled { background: rgba(239,68,68,0.08); color: #dc2626; }
+
+    /* Forms */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.75rem; font-weight: 600; color: #374361; margin-bottom: 0.3rem; font-family: 'Manrope', sans-serif; }
+    .form-group select, .form-group input {
+      width: 100%; padding: 0.55rem 0.75rem; border: 1px solid #e8ecf1; border-radius: 8px;
+      font-family: 'Poppins', sans-serif; font-size: 0.82rem; color: #1e2939;
+      background: #fff; transition: border-color 0.2s;
+    }
+    .form-group select:focus, .form-group input:focus { outline: none; border-color: #00b3c7; box-shadow: 0 0 0 3px rgba(0,179,199,0.08); }
+
+    /* Item rows */
+    .item-row { display: flex; gap: 0.75rem; align-items: end; margin-bottom: 0.75rem; }
+    .item-row .form-group { flex: 1; margin-bottom: 0; }
+    .btn-remove { background: none; border: 1px solid #e8ecf1; border-radius: 8px; padding: 0.55rem; cursor: pointer; color: #dc2626; transition: background 0.15s; }
+    .btn-remove:hover { background: rgba(239,68,68,0.06); }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+      font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 600;
+      padding: 0.6rem 1.25rem; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary { background: #00b3c7; color: #fff; box-shadow: 0 2px 12px rgba(0,179,199,0.15); }
+    .btn-primary:hover { background: #0099a8; }
+    .btn-primary:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+    .btn-outline { background: #fff; color: #00b3c7; border: 1px solid rgba(0,179,199,0.3); }
+    .btn-outline:hover { background: rgba(0,179,199,0.04); border-color: #00b3c7; }
+    .btn-sm { padding: 0.4rem 0.85rem; font-size: 0.75rem; border-radius: 8px; }
+
+    /* Result panel */
+    .result-panel {
+      background: #161c2b; border-radius: 12px; padding: 1.25rem;
+      font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+      font-size: 0.78rem; color: #94a3b8; line-height: 1.7;
+      overflow-x: auto; white-space: pre-wrap; max-height: 400px; overflow-y: auto;
+      margin-top: 1rem; display: none;
+    }
+    .result-panel.visible { display: block; }
+    .result-panel .success { color: #34d399; }
+    .result-panel .error { color: #f87171; }
+
+    /* Loading */
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-row { text-align: center; padding: 2rem; color: #374361; font-size: 0.82rem; }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 2rem; color: #94a3b8; font-size: 0.82rem; }
+
+    .money { font-family: 'Manrope', monospace; font-weight: 600; }
+    .text-right { text-align: right; }
+  </style>
+</head>
+<body>
+  <nav class="topnav">
+    <a href="/" class="topnav-brand">
+      <img src="/logo.svg" alt="Jelou" style="height:22px;width:auto;" />
+      Console
+    </a>
+    <div class="topnav-links">
+      <a href="#customers" class="nav-tab active" data-tab="customers">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Customers
+      </a>
+      <a href="#products" class="nav-tab" data-tab="products">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 7v10"/><path d="M12 7v4"/><path d="M16 7v7"/></svg>
+        Products
+      </a>
+      <a href="#create-order" class="nav-tab" data-tab="create-order">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        Create Order
+      </a>
+      <a href="#orders" class="nav-tab" data-tab="orders">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Orders
+      </a>
+    </div>
+    <div class="topnav-status"><span class="dot"></span> Connected</div>
+  </nav>
+
+  <div class="main">
+    <!-- CUSTOMERS -->
+    <div id="panel-customers" class="tab-panel active">
+      <div class="page-title">Customers</div>
+      <div class="page-desc">Registered B2B clients from the Customers API</div>
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+          <div class="card-label" style="margin-bottom:0;">Client Directory</div>
+          <button class="btn btn-outline btn-sm" onclick="loadCustomers()">Refresh</button>
+        </div>
+        <div id="customers-table"><div class="loading-row">Loading customers...</div></div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div id="panel-products" class="tab-panel">
+      <div class="page-title">Products</div>
+      <div class="page-desc">Product catalog with stock levels from the Orders API</div>
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+          <div class="card-label" style="margin-bottom:0;">Inventory</div>
+          <button class="btn btn-outline btn-sm" onclick="loadProducts()">Refresh</button>
+        </div>
+        <div id="products-table"><div class="loading-row">Loading products...</div></div>
+      </div>
+    </div>
+
+    <!-- CREATE ORDER -->
+    <div id="panel-create-order" class="tab-panel">
+      <div class="page-title">Create &amp; Confirm Order</div>
+      <div class="page-desc">Uses the Lambda Orchestrator to validate, create, and confirm an order in one step</div>
+      <div class="card">
+        <div class="card-label">Order Details</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Customer</label>
+            <select id="order-customer"><option value="">Loading...</option></select>
+          </div>
+          <div class="form-group">
+            <label>Idempotency Key</label>
+            <input type="text" id="order-idemp" placeholder="Auto-generated" />
+          </div>
+        </div>
+
+        <div class="card-label" style="margin-top:0.5rem;">Items</div>
+        <div id="order-items">
+          <div class="item-row">
+            <div class="form-group">
+              <label>Product</label>
+              <select class="item-product"><option value="">Loading...</option></select>
+            </div>
+            <div class="form-group" style="max-width:100px;">
+              <label>Qty</label>
+              <input type="number" class="item-qty" value="1" min="1" />
+            </div>
+            <button class="btn-remove" onclick="this.closest('.item-row').remove()" title="Remove">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="addItemRow()" style="margin-bottom:1rem;">+ Add item</button>
+        <br>
+        <button class="btn btn-primary" id="btn-create-order" onclick="createOrder()">
+          Create &amp; Confirm Order
+        </button>
+      </div>
+      <div id="order-result" class="result-panel"></div>
+    </div>
+
+    <!-- ORDERS -->
+    <div id="panel-orders" class="tab-panel">
+      <div class="page-title">Orders</div>
+      <div class="page-desc">All orders with status and totals from the Orders API</div>
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+          <div class="card-label" style="margin-bottom:0;">Order History</div>
+          <button class="btn btn-outline btn-sm" onclick="loadOrders()">Refresh</button>
+        </div>
+        <div id="orders-table"><div class="loading-row">Loading orders...</div></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const CUSTOMERS_BASE = '{{CUSTOMERS_API_BASE}}';
+const ORDERS_BASE = '{{ORDERS_API_BASE}}';
+const ORCHESTRATOR_BASE = '';
+
+let tokCustomers = null;
+let tokOrders = null;
+let customersCache = [];
+let productsCache = [];
+
+// Auth
+async function getToken(base) {
+  const r = await fetch(base + '/auth/login', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'admin', password: 'admin123' })
+  });
+  const d = await r.json();
+  return d.token;
+}
+
+async function init() {
+  try {
+    [tokCustomers, tokOrders] = await Promise.all([getToken(CUSTOMERS_BASE), getToken(ORDERS_BASE)]);
+    await Promise.all([loadCustomers(), loadProducts()]);
+    populateSelects();
+  } catch(e) { console.error('Init error:', e); }
+}
+
+// Format money
+function fmt(cents) { return '$' + (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2 }); }
+
+// Customers
+async function loadCustomers() {
+  const el = document.getElementById('customers-table');
+  try {
+    const r = await fetch(CUSTOMERS_BASE + '/customers', { headers: { 'Authorization': 'Bearer ' + tokCustomers } });
+    const d = await r.json();
+    customersCache = d.data || [];
+    if (!customersCache.length) { el.innerHTML = '<div class="empty">No customers found</div>'; return; }
+    el.innerHTML = '<table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Created</th></tr></thead><tbody>' +
+      customersCache.map(c => '<tr><td>' + c.id + '</td><td><strong>' + c.name + '</strong></td><td>' + c.email + '</td><td>' + (c.phone||'-') + '</td><td>' + new Date(c.created_at).toLocaleDateString() + '</td></tr>').join('') +
+      '</tbody></table>';
+  } catch(e) { el.innerHTML = '<div class="empty">Error loading customers</div>'; }
+}
+
+// Products
+async function loadProducts() {
+  const el = document.getElementById('products-table');
+  try {
+    const r = await fetch(ORDERS_BASE + '/products', { headers: { 'Authorization': 'Bearer ' + tokOrders } });
+    const d = await r.json();
+    productsCache = d.data || [];
+    if (!productsCache.length) { el.innerHTML = '<div class="empty">No products found</div>'; return; }
+    el.innerHTML = '<table><thead><tr><th>ID</th><th>SKU</th><th>Name</th><th class="text-right">Price</th><th class="text-right">Stock</th></tr></thead><tbody>' +
+      productsCache.map(p => '<tr><td>' + p.id + '</td><td><code style="background:#f1f3f7;padding:0.1rem 0.4rem;border-radius:4px;font-size:0.75rem;">' + p.sku + '</code></td><td><strong>' + p.name + '</strong></td><td class="text-right money">' + fmt(p.price_cents) + '</td><td class="text-right"><span style="color:' + (p.stock > 10 ? '#059669' : '#dc2626') + '">' + p.stock + '</span></td></tr>').join('') +
+      '</tbody></table>';
+  } catch(e) { el.innerHTML = '<div class="empty">Error loading products</div>'; }
+}
+
+// Orders
+async function loadOrders() {
+  const el = document.getElementById('orders-table');
+  try {
+    const r = await fetch(ORDERS_BASE + '/orders', { headers: { 'Authorization': 'Bearer ' + tokOrders } });
+    const d = await r.json();
+    const orders = d.data || [];
+    if (!orders.length) { el.innerHTML = '<div class="empty">No orders yet</div>'; return; }
+    el.innerHTML = '<table><thead><tr><th>ID</th><th>Customer</th><th>Status</th><th class="text-right">Total</th><th>Created</th></tr></thead><tbody>' +
+      orders.map(o => {
+        const badgeCls = o.status === 'CONFIRMED' ? 'badge-confirmed' : o.status === 'CANCELED' ? 'badge-canceled' : 'badge-created';
+        const cust = customersCache.find(c => c.id === o.customer_id);
+        return '<tr><td>#' + o.id + '</td><td>' + (cust ? cust.name : 'ID ' + o.customer_id) + '</td><td><span class="badge ' + badgeCls + '">' + o.status + '</span></td><td class="text-right money">' + fmt(o.total_cents) + '</td><td>' + new Date(o.created_at).toLocaleDateString() + '</td></tr>';
+      }).join('') +
+      '</tbody></table>';
+  } catch(e) { el.innerHTML = '<div class="empty">Error loading orders</div>'; }
+}
+
+// Populate selects
+function populateSelects() {
+  // Customer select
+  const cs = document.getElementById('order-customer');
+  cs.innerHTML = '<option value="">Select a customer...</option>' +
+    customersCache.map(c => '<option value="' + c.id + '">' + c.name + ' (' + c.email + ')</option>').join('');
+
+  // Product selects
+  updateProductSelects();
+
+  // Auto idempotency key
+  document.getElementById('order-idemp').value = 'orch-' + Date.now();
+}
+
+function updateProductSelects() {
+  document.querySelectorAll('.item-product').forEach(sel => {
+    const val = sel.value;
+    sel.innerHTML = '<option value="">Select product...</option>' +
+      productsCache.map(p => '<option value="' + p.id + '"' + (String(p.id) === val ? ' selected' : '') + '>' + p.name + ' — ' + fmt(p.price_cents) + ' (stock: ' + p.stock + ')</option>').join('');
+  });
+}
+
+function addItemRow() {
+  const container = document.getElementById('order-items');
+  const row = document.createElement('div');
+  row.className = 'item-row';
+  row.innerHTML = '<div class="form-group"><label>Product</label><select class="item-product"><option value="">Select product...</option></select></div>' +
+    '<div class="form-group" style="max-width:100px;"><label>Qty</label><input type="number" class="item-qty" value="1" min="1" /></div>' +
+    '<button class="btn-remove" onclick="this.closest(\'.item-row\').remove()" title="Remove"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+  container.appendChild(row);
+  updateProductSelects();
+}
+
+// Create order via orchestrator
+async function createOrder() {
+  const btn = document.getElementById('btn-create-order');
+  const result = document.getElementById('order-result');
+  const customerId = parseInt(document.getElementById('order-customer').value);
+  const idempKey = document.getElementById('order-idemp').value || 'orch-' + Date.now();
+
+  if (!customerId) { alert('Please select a customer'); return; }
+
+  const items = [];
+  document.querySelectorAll('.item-row').forEach(row => {
+    const pid = parseInt(row.querySelector('.item-product').value);
+    const qty = parseInt(row.querySelector('.item-qty').value);
+    if (pid && qty > 0) items.push({ product_id: pid, qty: qty });
+  });
+
+  if (!items.length) { alert('Please add at least one product'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Processing...';
+  result.className = 'result-panel visible';
+  result.textContent = 'Sending request to orchestrator...';
+
+  try {
+    const r = await fetch(ORCHESTRATOR_BASE + '/orchestrator/create-and-confirm-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customer_id: customerId, items: items, idempotency_key: idempKey, correlation_id: 'console-' + Date.now() })
+    });
+    const d = await r.json();
+    if (d.success) {
+      result.innerHTML = '<span class="success">Order created and confirmed successfully!</span>\n\n' + JSON.stringify(d, null, 2);
+      document.getElementById('order-idemp').value = 'orch-' + Date.now();
+      loadProducts();
+      loadOrders();
+    } else {
+      result.innerHTML = '<span class="error">Error: ' + d.error + '</span>\n\n' + JSON.stringify(d, null, 2);
+    }
+  } catch(e) {
+    result.innerHTML = '<span class="error">Connection error: ' + e.message + '</span>';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = 'Create &amp; Confirm Order';
+}
+
+// Tab navigation
+document.querySelectorAll('.nav-tab').forEach(tab => {
+  tab.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = this.dataset.tab;
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById('panel-' + target).classList.add('active');
+    if (target === 'orders') loadOrders();
+    if (target === 'customers') loadCustomers();
+    if (target === 'products') loadProducts();
+  });
+});
+
+init();
+</script>
+</body>
+</html>
