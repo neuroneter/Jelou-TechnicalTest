@@ -1,0 +1,306 @@
+openapi: 3.0.3
+info:
+  title: Orders API
+  description: API for managing B2B orders and products
+  version: 1.0.0
+servers:
+  - url: http://localhost:3002
+    description: Local development
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service is healthy
+  /auth/login:
+    post:
+      summary: Get JWT token for testing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+            example:
+              username: admin
+              password: admin123
+      responses:
+        '200':
+          description: JWT token
+  /products:
+    post:
+      summary: Create a product
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProduct'
+            example:
+              sku: "WIDGET-001"
+              name: "Standard Widget"
+              price_cents: 49900
+              stock: 100
+      responses:
+        '201':
+          description: Product created
+        '409':
+          description: SKU already exists
+    get:
+      summary: List/search products
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: cursor
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product list
+  /products/{id}:
+    get:
+      summary: Get product by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product detail
+        '404':
+          description: Not found
+    patch:
+      summary: Update product (price/stock)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProduct'
+      responses:
+        '200':
+          description: Product updated
+        '404':
+          description: Not found
+  /orders:
+    post:
+      summary: Create order
+      description: Validates customer via Customers API, verifies stock, creates order in CREATED status, deducts stock
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrder'
+            example:
+              customer_id: 1
+              items:
+                - product_id: 2
+                  qty: 3
+      responses:
+        '201':
+          description: Order created
+        '400':
+          description: Insufficient stock
+        '404':
+          description: Customer or product not found
+    get:
+      summary: List orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [CREATED, CONFIRMED, CANCELED]
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: cursor
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Order list
+  /orders/{id}:
+    get:
+      summary: Get order with items
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Order with items
+        '404':
+          description: Not found
+  /orders/{id}/confirm:
+    post:
+      summary: Confirm order (idempotent)
+      description: Requires X-Idempotency-Key header. Retries with same key return same response.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: X-Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order confirmed
+        '400':
+          description: Cannot confirm (wrong status or missing key)
+        '404':
+          description: Order not found
+  /orders/{id}/cancel:
+    post:
+      summary: Cancel order
+      description: CREATED orders cancel immediately. CONFIRMED orders can cancel within 10 minutes.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Order canceled, stock restored
+        '400':
+          description: Cannot cancel
+        '404':
+          description: Order not found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    CreateProduct:
+      type: object
+      required: [sku, name, price_cents, stock]
+      properties:
+        sku:
+          type: string
+        name:
+          type: string
+        price_cents:
+          type: integer
+        stock:
+          type: integer
+    UpdateProduct:
+      type: object
+      properties:
+        name:
+          type: string
+        price_cents:
+          type: integer
+        stock:
+          type: integer
+    CreateOrder:
+      type: object
+      required: [customer_id, items]
+      properties:
+        customer_id:
+          type: integer
+        items:
+          type: array
+          items:
+            type: object
+            required: [product_id, qty]
+            properties:
+              product_id:
+                type: integer
+              qty:
+                type: integer
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        customer_id:
+          type: integer
+        status:
+          type: string
+          enum: [CREATED, CONFIRMED, CANCELED]
+        total_cents:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        order_id:
+          type: integer
+        product_id:
+          type: integer
+        qty:
+          type: integer
+        unit_price_cents:
+          type: integer
+        subtotal_cents:
+          type: integer

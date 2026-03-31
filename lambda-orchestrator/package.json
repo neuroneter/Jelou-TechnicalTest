@@ -1,0 +1,21 @@
+{
+  "name": "lambda-orchestrator",
+  "version": "1.0.0",
+  "description": "Lambda orchestrator for Jelou B2B Backoffice",
+  "main": "src/handler.js",
+  "scripts": {
+    "start": "node_modules/.bin/serverless offline",
+    "dev": "node_modules/.bin/serverless offline --httpPort 3003 --lambdaPort 3005",
+    "deploy": "node_modules/.bin/serverless deploy",
+    "test": "echo \"No tests configured\" && exit 0"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "serverless-http": "^3.2.0"
+  },
+  "devDependencies": {
+    "serverless": "^3.39.0",
+    "serverless-offline": "^13.8.1"
+  }
+}
