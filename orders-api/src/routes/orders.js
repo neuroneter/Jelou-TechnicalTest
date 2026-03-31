@@ -19,7 +19,9 @@ const createOrderSchema = z.object({
 
 // Helper: validate customer via Customers API internal endpoint
 async function validateCustomer(customerId) {
-  const response = await fetch(`${CUSTOMERS_API_BASE}/internal/customers/${customerId}`, {
+  const safeId = parseInt(customerId, 10);
+  if (isNaN(safeId) || safeId <= 0) return null;
+  const response = await fetch(`${CUSTOMERS_API_BASE}/internal/customers/${safeId}`, {
     headers: { 'Authorization': `Bearer ${SERVICE_TOKEN}` },
   });
   if (!response.ok) {

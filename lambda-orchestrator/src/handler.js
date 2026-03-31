@@ -612,8 +612,12 @@ app.post('/orchestrator/create-and-confirm-order', async (req, res) => {
   try {
     const operatorToken = getOperatorToken();
 
-    // Step 1: Validate customer
-    const customerResponse = await fetch(`${CUSTOMERS_API_BASE}/internal/customers/${customer_id}`, {
+    // Step 1: Validate customer (sanitize to prevent SSRF)
+    const safeCustomerId = parseInt(customer_id, 10);
+    if (isNaN(safeCustomerId) || safeCustomerId <= 0) {
+      return res.status(400).json({ success: false, correlationId, error: 'Invalid customer_id' });
+    }
+    const customerResponse = await fetch(`${CUSTOMERS_API_BASE}/internal/customers/${safeCustomerId}`, {
       headers: { 'Authorization': `Bearer ${SERVICE_TOKEN}` },
     });
 
